@@ -1,0 +1,29 @@
+FROM debian:bullseye-slim
+
+ENV DEBIAN_FRONTEND noninteractive
+
+ARG ARM_GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2?revision=ca0cbf9c-9de2-491c-ac48-898b5bbc0443&la=en&hash=68760A8AE66026BCF99F05AC017A6A50C6FD832A"
+
+ARG ARM_GCC_INSTALL_ROOT=/usr/local
+ARG ARM_GCC_ARCHIVE_PATH=/tmp/arm-gcc.tar.bz2
+
+ARG UID=1000
+ARG GID=1000
+
+RUN apt-get update -yq && \
+    apt-get upgrade -yq && \
+    apt-get install -yq build-essential && \
+    apt-get install -yq binutils g++ gcc make curl && \
+    apt-get install -yq unzip && \
+    apt-get install -yq stm32flash
+
+RUN groupadd -f --gid ${GID} user && useradd user --uid=${UID} --gid=${GID}
+
+RUN echo Download ARM-GCC from ${ARM_GCC_URL}
+RUN curl -fSL -A "Mozilla/4.0" -o ${ARM_GCC_ARCHIVE_PATH} ${ARM_GCC_URL} \
+  && mkdir -p ${ARM_GCC_INSTALL_ROOT} \
+  && cd ${ARM_GCC_INSTALL_ROOT} \
+  && tar xf ${ARM_GCC_ARCHIVE_PATH} \
+  && rm -f ${ARM_GCC_ARCHIVE_PATH}
+
+USER ${UID}:${GID}
